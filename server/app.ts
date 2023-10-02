@@ -2,6 +2,8 @@
 import dotenv from 'dotenv';
 import express, { Application, Express, Request, Response } from 'express';
 
+require('./src/db/mongodb')
+
 //For env File 
 dotenv.config();
 
