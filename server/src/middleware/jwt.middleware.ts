@@ -1,25 +1,32 @@
-import { NextFunction, Request, Response } from 'express';
-import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
+import { Request } from 'express';
+import expressJwt, { RequestHandler } from 'express-jwt';
 
-export const SECRET_KEY: Secret = 'your-secret-key-here';
+// Define your secret key
+const secretKey = 'helloworld';
 
-export interface CustomRequest extends Request {
-    token: string | JwtPayload;
+// Create a function to get the token from headers
+function getTokenFromHeaders(req: Request) {
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.split(' ')[0] === 'Bearer'
+    ) {
+        const token = req.headers.authorization.split(' ')[1];
+        return token;
+    }
+    return null;
 }
 
-export const auth = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const token = req.header('Authorization')?.replace('Bearer ', '');
-
-        if (!token) {
-            throw new Error();
-        }
-
-        const decoded = jwt.verify(token, SECRET_KEY);
-        (req as CustomRequest).token = decoded;
-
-        next();
-    } catch (err) {
-        res.status(401).send('Please authenticate');
-    }
+// Define the options for expressJwt as a RequestHandler
+const jwtOptions: RequestHandler = (req, res, next) => {
+    return {
+        secret: secretKey,
+        algorithms: ['HS256'],
+        requestProperty: 'payload',
+        getToken: getTokenFromHeaders,
+    };
 };
+
+// Create the isAuthenticated middleware
+const isAuthenticated = expressJwt(jwtOptions);
+
+export { isAuthenticated };
